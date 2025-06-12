@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Adding publish status
+
 ## 0.2.0
 
 - Finally automatically published
