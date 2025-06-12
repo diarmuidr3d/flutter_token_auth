@@ -5,24 +5,21 @@ import 'method_counters.dart';
 
 class FakeAuthManager implements AuthManager {
   static final FakeAuthManager _authManager = FakeAuthManager._new();
-  // ignore: unused_field
-  late AuthConfig _config;
+  @override
+  late AuthConfig config;
 
   FakeAuthManager._new();
 
   factory FakeAuthManager({
-    AuthConfig? config,
+    AuthConfig? config = const AuthConfig(appURL: 'https://example.test'),
     bool clear = true,
     bool withLoggedInUser = false,
   }) {
-    AuthManager().replaceForTesting(_authManager);
+    AuthManager(config: config).replaceForTesting(_authManager);
     if (clear) _authManager.clear();
     if (withLoggedInUser) {
       _authManager._user = MockUser.create();
       _authManager.allowLogin = true;
-    }
-    if (config != null) {
-      _authManager._config = config;
     }
     return _authManager;
   }
@@ -43,6 +40,8 @@ class FakeAuthManager implements AuthManager {
     allowLogin = false;
     timesLoginCalled = 0;
     loginCalledWith = {};
+    timesCreateAccountCalled = 0;
+    createAccountCalledWith = {};
     methodCounters.clear();
   }
 

@@ -3,8 +3,7 @@ import 'package:flutter_token_auth/token_auth.dart';
 
 void main() {
   setUp(() {
-    AuthManager().replaceForTesting(FakeAuthManager());
-    FakeAuthManager().clear();
+    FakeAuthManager();
   });
 
   group('MockUser', () {

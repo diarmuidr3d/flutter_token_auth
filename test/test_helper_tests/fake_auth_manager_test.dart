@@ -3,6 +3,11 @@ import 'package:flutter_token_auth/token_auth.dart';
 
 void main() {
   group('FakeAuthManager', () {
+    late FakeAuthManager fakeAuth;
+    setUp(() {
+      fakeAuth = FakeAuthManager(clear: true);
+    });
+
     test('should use FakeAuthManager for testing', () {
       final fakeAuth = FakeAuthManager(withLoggedInUser: true);
       expect(fakeAuth.currentUser, isNotNull);
@@ -65,9 +70,6 @@ void main() {
     });
 
     test('should handle failed login attempts', () async {
-      final fakeAuth = FakeAuthManager(clear: true);
-      // Don't set allowLogin to true, so login should fail
-
       expect(
         () => fakeAuth.login('test@example.com', 'wrongpassword'),
         throwsUnimplementedError,
@@ -97,7 +99,6 @@ void main() {
       });
 
       test('should handle user login method', () async {
-        final fakeAuth = FakeAuthManager(clear: true);
         fakeAuth.allowLogin = true;
 
         final user = User(email: 'test@example.com');
@@ -108,7 +109,6 @@ void main() {
       });
 
       test('should handle user createAccount method', () async {
-        final fakeAuth = FakeAuthManager(clear: true);
         fakeAuth.allowLogin = true;
 
         final user = User(email: 'new@example.com', name: 'New User');

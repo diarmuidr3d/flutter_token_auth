@@ -1,5 +1,7 @@
 Implements a basic system for managing token-based authentication. This is designed specifically to interact neatly with https://github.com/lynndylanhurley/devise_token_auth.
 
+[![Flutter Test](https://github.com/diarmuidr3d/flutter_token_auth/actions/workflows/flutter_build.yml/badge.svg)](https://github.com/diarmuidr3d/flutter_token_auth/actions/workflows/flutter_build.yml)
+
 ## Features
 - Persisting of user in local storage to avoid re-authentication
 - Validation of token to ensure user is authenticated

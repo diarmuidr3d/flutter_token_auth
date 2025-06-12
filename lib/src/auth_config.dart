@@ -7,7 +7,7 @@ class AuthConfig {
   final String passwordPath;
   final String createAccountPath;
 
-  AuthConfig({
+  const AuthConfig({
     required this.appURL,
     this.path = '/auth',
     this.signInPath = '/sign_in',

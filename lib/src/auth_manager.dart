@@ -14,7 +14,7 @@ import 'user.dart';
 /// of authentication credentials.
 class AuthManager {
   static AuthManager _singleton = AuthManager._internal();
-  late AuthConfig _config;
+  late AuthConfig config;
   late http.Client _httpClient;
 
   /// Creates or returns the singleton instance of AuthManager.
@@ -25,13 +25,13 @@ class AuthManager {
   /// Throws [Exception] if the config is not set.
   factory AuthManager({AuthConfig? config, http.Client? httpClient}) {
     if (config != null) {
-      _singleton._config = config;
+      _singleton.config = config;
     }
     if (httpClient != null) {
       _singleton._httpClient = httpClient;
     }
     // ignore: unnecessary_null_comparison
-    if (_singleton._config == null) {
+    if (_singleton.config == null) {
       throw Exception('AuthConfig is not set');
     }
     return _singleton;
@@ -60,7 +60,7 @@ class AuthManager {
   /// Throws [Exception] if the login request fails.
   Future<User?> login(String email, String password) async {
     var response = await _httpClient.post(
-      _config.signInUrl,
+      config.signInUrl,
       headers: defaultHeaders,
       body: jsonEncode({'email': email, 'password': password}),
     );
@@ -82,7 +82,7 @@ class AuthManager {
     required String name,
   }) async {
     var response = await _httpClient.post(
-      _config.createAccountUrl,
+      config.createAccountUrl,
       headers: defaultHeaders,
       body: jsonEncode({
         'email': email,
@@ -106,7 +106,7 @@ class AuthManager {
     Map<String, String> headers = Map<String, String>.from(defaultHeaders);
     headers.addAll(_accessValues);
     var response = await _httpClient.put(
-      _config.passwordUrl,
+      config.passwordUrl,
       headers: headers,
       body: jsonEncode({
         'password': password,
@@ -140,7 +140,7 @@ class AuthManager {
   /// This method sends a sign-out request to the server, clears the current user,
   /// and removes all authentication tokens from local storage.
   Future<void> logout() async {
-    await delete(_config.signOutUrl);
+    await delete(config.signOutUrl);
     await clear();
   }
 
@@ -199,7 +199,7 @@ class AuthManager {
     headers['content-type'] = 'application/json';
     headers['accept'] = 'application/json';
     var response = await _httpClient.get(
-      _config.validateTokenUrl,
+      config.validateTokenUrl,
       headers: headers,
     );
     if (response.statusCode != 200) {
@@ -342,8 +342,8 @@ class AuthManager {
   }
 
   Uri _validateUri(Uri uri) {
-    if (uri.host != _config.appURL) {
-      uri = uri.replace(host: _config.appURL);
+    if (uri.host != config.appURL) {
+      uri = uri.replace(host: config.appURL);
     }
     return uri;
   }
