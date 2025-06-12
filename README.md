@@ -20,5 +20,7 @@ AuthManager.currentUser; // get the current user
 await AuthManager.loadFromStorage(); // on app load, retreive the cached local user
 ```
 
+There are additional settings to be passed in in `AuthConfig`, see the interface in https://github.com/diarmuidr3d/flutter_token_auth/blob/main/lib/src/auth_config.dart for example
+
 ## Additional information
 TODO
