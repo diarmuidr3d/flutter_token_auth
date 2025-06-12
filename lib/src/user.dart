@@ -32,11 +32,7 @@ class User {
   Future<User> login(String password) async {
     User? newUser = await AuthManager().login(_email!, password);
 
-    if (newUser != null) {
-      return newUser;
-    } else {
-      return this;
-    }
+    return newUser ?? this;
   }
 
   Future<User> createAccount(String password) async {
@@ -46,20 +42,12 @@ class User {
       name: name!,
     );
 
-    if (newUser != null) {
-      return newUser;
-    } else {
-      return this;
-    }
+    return newUser ?? this;
   }
 
   Future<User> changePassword(String password) async {
     User? newUser = await AuthManager().changePassword(password: password);
 
-    if (newUser != null) {
-      return newUser;
-    } else {
-      return this;
-    }
+    return newUser ?? this;
   }
 }
