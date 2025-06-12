@@ -25,4 +25,11 @@ await AuthManager.loadFromStorage(); // on app load, retreive the cached local u
 There are additional settings to be passed in in `AuthConfig`, see the interface in https://github.com/diarmuidr3d/flutter_token_auth/blob/main/lib/src/auth_config.dart for example
 
 ## Additional information
-TODO
+
+# Publishing a new version
+Update `pubspec.yaml` with the new version number
+Edit `CHANGELOG.md` with the changes
+`git commit "v0.3.5"` commit the changes
+`git tag v0.3.5` tag the changes
+Push your changes `git push origin branch`
+Push the tag `git push v0.3.5`
