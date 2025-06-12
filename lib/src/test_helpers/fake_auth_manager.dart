@@ -18,13 +18,13 @@ class FakeAuthManager implements AuthManager {
     AuthManager(config: config).replaceForTesting(_authManager);
     if (clear) _authManager.clear();
     if (withLoggedInUser) {
-      _authManager._user = MockUser.create();
+      _authManager.user = MockUser.create();
       _authManager.allowLogin = true;
     }
     return _authManager;
   }
 
-  User? _user;
+  User? user;
 
   bool allowLogin = false;
   int timesLoginCalled = 0;
@@ -36,7 +36,7 @@ class FakeAuthManager implements AuthManager {
 
   @override
   Future<void> clear() async {
-    _user = null;
+    user = null;
     allowLogin = false;
     timesLoginCalled = 0;
     loginCalledWith = {};
@@ -53,14 +53,14 @@ class FakeAuthManager implements AuthManager {
   @override
   Future<bool> checkLoggedIn() async {
     if (allowLogin) {
-      if (_user == null) return false;
-      return _user!.isSignedIn;
+      if (user == null) return false;
+      return user!.isSignedIn;
     }
     throw UnimplementedError();
   }
 
   @override
-  get currentUser => _user;
+  get currentUser => user;
 
   @override
   Future<Response> get(
@@ -86,8 +86,8 @@ class FakeAuthManager implements AuthManager {
     timesLoginCalled++;
     loginCalledWith = {'email': email, 'password': password};
     if (allowLogin) {
-      _user = MockUser.create(email: email);
-      return _user;
+      user = MockUser.create(email: email);
+      return user;
     }
     throw UnimplementedError();
   }
@@ -131,7 +131,7 @@ class FakeAuthManager implements AuthManager {
   @override
   bool userMustBeLoggedIn() {
     if (allowLogin) {
-      return _user != null && _user!.isSignedIn;
+      return user != null && user!.isSignedIn;
     }
     throw UnimplementedError();
   }
@@ -163,8 +163,8 @@ class FakeAuthManager implements AuthManager {
       'name': name,
     };
     if (allowLogin) {
-      _user = MockUser.create(email: email, name: name);
-      return _user;
+      user = MockUser.create(email: email, name: name);
+      return user;
     }
     throw UnimplementedError();
   }
@@ -178,7 +178,7 @@ class FakeAuthManager implements AuthManager {
   Future<User?> changePassword({required String password}) async {
     methodCounters['changePassword'].call({'password': password});
     if (allowLogin) {
-      return _user;
+      return user;
     }
     throw UnimplementedError();
   }

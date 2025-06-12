@@ -48,6 +48,15 @@ void main() {
           equals('https://api.example.com/v1/auth/register'),
         );
       });
+
+      test('should handle custom app id key', () {
+        final customConfig = AuthConfig(
+          appURL: 'api.example.com',
+          appIdKey: 'farm_id',
+        );
+
+        expect(customConfig.appIdKey, equals('farm_id'));
+      });
     });
   });
 }

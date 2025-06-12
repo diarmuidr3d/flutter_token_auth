@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_token_auth/flutter_token_auth.dart' hide Response;
 import 'package:http/http.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
@@ -108,6 +109,88 @@ void main() {
           expect(loadedUser.accessToken, equals('123access-token'));
           expect(loadedUser.client, equals('456client'));
           expect(loadedUser.uid, equals('789uid'));
+        });
+
+        group('with custom app id key', () {
+          late MockClient httpClient;
+          setUp(() {
+            config = AuthConfig(
+              appURL: 'test.example.com',
+              appIdKey: 'farm_id',
+            );
+            httpClient = MockClient((request) async {
+              return Response(
+                json.encode({
+                  'data': {
+                    'email': 'test@example.com',
+                    'name': 'Test User',
+                    'farm_id': 123,
+                    'id': 456,
+                  },
+                }),
+                200,
+                headers: {
+                  'content-type': 'application/json',
+                  'access-token': '123access-token',
+                  'client': '456client',
+                  'uid': '789uid',
+                },
+              );
+            });
+            AuthManager(httpClient: httpClient, config: config);
+          });
+
+          test('should login a user', () async {
+            final user = await AuthManager().login(
+              'test@example.com',
+              'password',
+            );
+            expect(user, isNotNull);
+            expect(user!.isSignedIn, isTrue);
+            expect(user.appId, equals(123));
+            // Avoids race condition with clear()
+            await AuthManager().writeKeysToStore();
+          });
+
+          test('logged in user is stored in local storage', () async {
+            await AuthManager().login('test@example.com', 'password');
+            final loadedUser = await AuthManager().loadFromStorage();
+            expect(loadedUser, isNotNull);
+            expect(loadedUser!.isSignedIn, isTrue);
+            expect(loadedUser.email, equals('test@example.com'));
+            expect(loadedUser.appId, equals(123));
+            expect(loadedUser.accessToken, equals('123access-token'));
+            expect(loadedUser.client, equals('456client'));
+            expect(loadedUser.uid, equals('789uid'));
+          });
+        });
+      });
+
+      group('addAppToUrl', () {
+        setUp(() {
+          AuthManager(config: config).user = MockUser(appId: 123);
+        });
+
+        test('should add app id to url', () async {
+          final url = Uri.parse('https://test.example.com/auth/sign_in');
+          final newUrl = AuthManager().addAppToUrl(url);
+          expect(newUrl.queryParameters['app_id'], equals('123'));
+        });
+
+        group('with custom app id key', () {
+          setUp(() {
+            config = AuthConfig(
+              appURL: 'test.example.com',
+              appIdKey: 'farm_id',
+            );
+            AuthManager(config: config).user = MockUser(appId: 123);
+          });
+
+          test('should add app id to url', () async {
+            final url = Uri.parse('https://test.example.com/auth/sign_in');
+            final newUrl = AuthManager().addAppToUrl(url);
+            expect(newUrl.queryParameters['farm_id'], equals('123'));
+          });
         });
       });
 

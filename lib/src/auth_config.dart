@@ -6,6 +6,7 @@ class AuthConfig {
   final String validateTokenPath;
   final String passwordPath;
   final String createAccountPath;
+  final String appIdKey;
 
   const AuthConfig({
     required this.appURL,
@@ -15,6 +16,7 @@ class AuthConfig {
     this.validateTokenPath = '/validate_token',
     this.passwordPath = '/password',
     this.createAccountPath = '/',
+    this.appIdKey = 'app_id',
   });
 
   Uri get signInUrl => Uri.https(appURL, path + signInPath);

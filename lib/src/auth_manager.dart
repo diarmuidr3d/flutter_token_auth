@@ -43,12 +43,12 @@ class AuthManager {
 
   static final LocalStorage _secureStorage = LocalStorage();
 
-  User? _user;
-
   /// Gets the currently logged-in user.
   ///
   /// Returns the [User] object if a user is logged in, otherwise returns null.
-  User? get currentUser => _user;
+  User? user;
+
+  User? get currentUser => user;
 
   /// Authenticates a user with email and password.
   ///
@@ -122,17 +122,17 @@ class AuthManager {
     }
     var respHeaders = response.headers;
     var body = json.decode(response.body);
-    _user = User(
+    user = User(
       accessToken: respHeaders['access-token'],
       client: respHeaders['client'],
       uid: respHeaders['uid'],
-      appId: body["data"]['app_id'],
+      appId: body["data"][config.appIdKey],
       id: body["data"]['id'],
       email: body["data"]['email'],
       name: body["data"]['name'],
     );
     writeKeysToStore();
-    return _user;
+    return user;
   }
 
   /// Logs out the current user and clears stored authentication data.
@@ -145,7 +145,7 @@ class AuthManager {
   }
 
   Future<void> clear() async {
-    _user = null;
+    user = null;
     await _secureStorage.delete(key: userAccessTokenKey);
     await _secureStorage.delete(key: userClientKey);
     await _secureStorage.delete(key: userUidKey);
@@ -164,14 +164,14 @@ class AuthManager {
     var uid = await _secureStorage.read(key: userUidKey);
     var email = await _secureStorage.read(key: userEmailKey);
     var appId = await _secureStorage.read(key: appIdKey);
-    _user = User(
+    user = User(
       accessToken: accessToken,
       client: client,
       uid: uid,
       email: email,
       appId: int.parse(appId!),
     );
-    return _user;
+    return user;
   }
 
   /// Checks if a user is currently logged in by loading from storage and validating the token.
@@ -181,7 +181,7 @@ class AuthManager {
   /// This method first attempts to load user data from storage if no user is currently set,
   /// then validates the authentication token with the server.
   Future<bool> checkLoggedIn() async {
-    _user ??= await loadFromStorage();
+    user ??= await loadFromStorage();
     return validateToken();
   }
 
@@ -192,7 +192,7 @@ class AuthManager {
   /// This method sends a request to the server to verify that the current
   /// authentication token is still valid and updates the token if necessary.
   Future<bool> validateToken() async {
-    if (_user == null || _user!.accessToken == null) {
+    if (user == null || user!.accessToken == null) {
       return false;
     }
     var headers = _accessValues;
@@ -210,32 +210,32 @@ class AuthManager {
   }
 
   Map<String, String> get _accessValues => {
-    'uid': _user!.uid!,
-    'access-token': _user!.accessToken!,
-    'client': _user!.client!,
+    'uid': user!.uid!,
+    'access-token': user!.accessToken!,
+    'client': user!.client!,
   };
 
   Future<void> writeKeysToStore() async {
-    if (_user == null || _user!.accessToken == null) {
+    if (user == null || user!.accessToken == null) {
       return;
     }
     await _secureStorage.write(
       key: userAccessTokenKey,
-      value: _user!.accessToken!,
+      value: user!.accessToken!,
     );
-    await _secureStorage.write(key: userClientKey, value: _user!.client!);
-    await _secureStorage.write(key: userUidKey, value: _user!.uid!);
-    await _secureStorage.write(key: userEmailKey, value: _user!.email!);
-    await _secureStorage.write(key: appIdKey, value: _user!.appId!.toString());
+    await _secureStorage.write(key: userClientKey, value: user!.client!);
+    await _secureStorage.write(key: userUidKey, value: user!.uid!);
+    await _secureStorage.write(key: userEmailKey, value: user!.email!);
+    await _secureStorage.write(key: appIdKey, value: user!.appId!.toString());
   }
 
   void handleResponse(http.Response response) {
     var headers = response.headers;
     String? accessToken = headers['access-token'];
     if (accessToken == "") return;
-    _user!.accessToken = accessToken;
-    _user!.client = headers['client'];
-    _user!.uid = headers['uid'];
+    user!.accessToken = accessToken;
+    user!.client = headers['client'];
+    user!.uid = headers['uid'];
     writeKeysToStore();
   }
 
@@ -349,7 +349,7 @@ class AuthManager {
   }
 
   bool userMustBeLoggedIn() {
-    if (_user == null || _user!.accessToken == null) {
+    if (user == null || user!.accessToken == null) {
       throw Exception('User not logged in');
     }
     return true;
@@ -357,7 +357,7 @@ class AuthManager {
 
   Uri addAppToUrl(Uri url, {Map<String, dynamic>? queryParams}) {
     queryParams ??= <String, dynamic>{};
-    queryParams['app_id'] = _user!.appId!.toString();
+    queryParams[config.appIdKey] = user!.appId!.toString();
     return url.replace(queryParameters: queryParams);
   }
 

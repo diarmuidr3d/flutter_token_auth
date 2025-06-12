@@ -1,3 +1,7 @@
+## 0.2.2
+
+- Allow the app id key to be configured
+
 ## 0.2.1
 
 - Adding publish status
