@@ -1,4 +1,4 @@
-import 'package:flutter_token_auth/token_auth.dart';
+import 'package:flutter_token_auth/flutter_token_auth.dart';
 
 void main() {
   var user = User(email: 'test@test.com');

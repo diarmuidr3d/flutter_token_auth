@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_token_auth/token_auth.dart';
+import 'package:flutter_token_auth/flutter_token_auth.dart';
 
 void main() {
   late AuthConfig config;

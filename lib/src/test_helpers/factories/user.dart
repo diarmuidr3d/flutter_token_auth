@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter_token_auth/token_auth.dart';
+import 'package:flutter_token_auth/flutter_token_auth.dart';
 
 class MockUser extends User {
   static MockUser create({

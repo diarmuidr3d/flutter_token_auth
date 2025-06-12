@@ -1,5 +1,5 @@
 import 'package:http/http.dart' as http;
-import 'package:flutter_token_auth/token_auth.dart';
+import 'package:flutter_token_auth/flutter_token_auth.dart';
 
 import 'method_counters.dart';
 
