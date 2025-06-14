@@ -30,10 +30,6 @@ class AuthManager {
     if (httpClient != null) {
       _singleton._httpClient = httpClient;
     }
-    // ignore: unnecessary_null_comparison
-    if (_singleton.config == null) {
-      throw Exception('AuthConfig is not set');
-    }
     return _singleton;
   }
 
