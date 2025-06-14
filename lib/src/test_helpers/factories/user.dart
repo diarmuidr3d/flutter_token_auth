@@ -20,7 +20,7 @@ class MockUser extends User {
       accessToken: accessToken ?? Random().nextInt(1000000).toString(),
       client: client ?? Random().nextInt(1000000).toString(),
       uid: uid ?? email,
-      appId: appId,
+      appId: appId ?? Random().nextInt(1000000),
       id: id,
     );
   }

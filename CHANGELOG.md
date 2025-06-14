@@ -1,3 +1,7 @@
+## 0.2.3
+
+- Mock User factory generates an app id key if none is supplied
+
 ## 0.2.2
 
 - Allow the app id key to be configured
@@ -13,7 +17,6 @@
 ## 0.1.3
 
 - Enabling automatic publishing
-
 
 ## 0.1.0
 

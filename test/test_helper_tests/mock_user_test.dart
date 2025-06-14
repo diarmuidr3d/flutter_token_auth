@@ -33,6 +33,12 @@ void main() {
       // Access tokens should be different (randomly generated)
       expect(user1.accessToken, isNot(equals(user2.accessToken)));
       expect(user1.id, isNot(equals(user2.id)));
+      expect(user1.appId, isNot(equals(user2.appId)));
+    });
+
+    test('should generate random app id for mock users', () {
+      final user1 = MockUser.create();
+      expect(user1.appId, isNotNull);
     });
   });
 }
