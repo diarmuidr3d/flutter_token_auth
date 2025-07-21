@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 import 'auth_config.dart';
+import 'client.dart';
 import 'local_storage.dart';
-import 'response.dart';
 import 'user.dart';
 
 /// Manages user authentication and API requests.
@@ -15,7 +13,7 @@ import 'user.dart';
 class AuthManager {
   static AuthManager _singleton = AuthManager._internal();
   late AuthConfig config;
-  late http.Client _httpClient;
+  late AuthClient httpClient;
 
   /// Creates or returns the singleton instance of AuthManager.
   ///
@@ -23,19 +21,17 @@ class AuthManager {
   /// is required on first instantiation.
   ///
   /// Throws [Exception] if the config is not set.
-  factory AuthManager({AuthConfig? config, http.Client? httpClient}) {
+  factory AuthManager({AuthConfig? config, AuthClient? httpClient}) {
     if (config != null) {
       _singleton.config = config;
     }
     if (httpClient != null) {
-      _singleton._httpClient = httpClient;
+      _singleton.httpClient = httpClient;
     }
     return _singleton;
   }
 
-  AuthManager._internal() {
-    _httpClient = http.Client();
-  }
+  AuthManager._internal();
 
   static final LocalStorage _secureStorage = LocalStorage();
 
@@ -55,12 +51,7 @@ class AuthManager {
   ///
   /// Throws [Exception] if the login request fails.
   Future<User?> login(String email, String password) async {
-    var response = await _httpClient.post(
-      config.signInUrl,
-      headers: defaultHeaders,
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-    return handleUserResponse(response);
+    return httpClient.login(email, password);
   }
 
   /// Creates a new user account.
@@ -77,17 +68,11 @@ class AuthManager {
     required String password,
     required String name,
   }) async {
-    var response = await _httpClient.post(
-      config.createAccountUrl,
-      headers: defaultHeaders,
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-        'password_confirmation': password,
-        'name': name,
-      }),
+    return httpClient.createAccount(
+      email: email,
+      password: password,
+      name: name,
     );
-    return handleUserResponse(response);
   }
 
   /// Changes the password for the currently logged-in user.
@@ -99,36 +84,7 @@ class AuthManager {
   ///
   /// Throws [Exception] if the password change request fails or if no user is logged in.
   Future<User?> changePassword({required String password}) async {
-    Map<String, String> headers = Map<String, String>.from(defaultHeaders);
-    headers.addAll(_accessValues);
-    var response = await _httpClient.put(
-      config.passwordUrl,
-      headers: headers,
-      body: jsonEncode({
-        'password': password,
-        'password_confirmation': password,
-      }),
-    );
-    return handleUserResponse(response);
-  }
-
-  User? handleUserResponse(http.Response response) {
-    if (response.statusCode != 200) {
-      throw Exception('Failed to login');
-    }
-    var respHeaders = response.headers;
-    var body = json.decode(response.body);
-    user = User(
-      accessToken: respHeaders['access-token'],
-      client: respHeaders['client'],
-      uid: respHeaders['uid'],
-      appId: body["data"][config.appIdKey],
-      id: body["data"]['id'],
-      email: body["data"]['email'],
-      name: body["data"]['name'],
-    );
-    writeKeysToStore();
-    return user;
+    return httpClient.changePassword(password: password);
   }
 
   /// Logs out the current user and clears stored authentication data.
@@ -136,8 +92,7 @@ class AuthManager {
   /// This method sends a sign-out request to the server, clears the current user,
   /// and removes all authentication tokens from local storage.
   Future<void> logout() async {
-    await delete(config.signOutUrl);
-    await clear();
+    await httpClient.logout();
   }
 
   Future<void> clear() async {
@@ -188,28 +143,8 @@ class AuthManager {
   /// This method sends a request to the server to verify that the current
   /// authentication token is still valid and updates the token if necessary.
   Future<bool> validateToken() async {
-    if (user == null || user!.accessToken == null) {
-      return false;
-    }
-    var headers = _accessValues;
-    headers['content-type'] = 'application/json';
-    headers['accept'] = 'application/json';
-    var response = await _httpClient.get(
-      config.validateTokenUrl,
-      headers: headers,
-    );
-    if (response.statusCode != 200) {
-      return false;
-    }
-    handleResponse(response);
-    return true;
+    return httpClient.validateToken();
   }
-
-  Map<String, String> get _accessValues => {
-    'uid': user!.uid!,
-    'access-token': user!.accessToken!,
-    'client': user!.client!,
-  };
 
   Future<void> writeKeysToStore() async {
     if (user == null || user!.accessToken == null) {
@@ -225,16 +160,6 @@ class AuthManager {
     await _secureStorage.write(key: appIdKey, value: user!.appId!.toString());
   }
 
-  void handleResponse(http.Response response) {
-    var headers = response.headers;
-    String? accessToken = headers['access-token'];
-    if (accessToken == "") return;
-    user!.accessToken = accessToken;
-    user!.client = headers['client'];
-    user!.uid = headers['uid'];
-    writeKeysToStore();
-  }
-
   /// Sends an authenticated POST request to the specified URL.
   ///
   /// [url] is the target URL for the request.
@@ -244,19 +169,12 @@ class AuthManager {
   /// Returns a [Response] object containing the server's response.
   ///
   /// Throws [Exception] if the user is not logged in or if the URL validation fails.
-  Future<Response> post(
+  Future<http.Response> post(
     Uri url, {
     Map<String, String>? headers,
     Map<String, Object?>? body,
   }) async {
-    _validate(url);
-    var response = await _httpClient.post(
-      addAppToUrl(url),
-      headers: buildHeaders(headers),
-      body: jsonEncode(body),
-    );
-    handleResponse(response);
-    return Response.fromHttpResponse(response);
+    return await httpClient.post(url, headers: headers, body: body);
   }
 
   /// Sends an authenticated GET request to the specified URL.
@@ -268,19 +186,16 @@ class AuthManager {
   /// Returns a [Response] object containing the server's response.
   ///
   /// Throws [Exception] if the user is not logged in or if the URL validation fails.
-  Future<Response> get(
+  Future<http.Response> get(
     Uri url, {
     Map<String, String>? headers,
     Map<String, dynamic>? queryParams,
   }) async {
-    url = _validate(url);
-    final urlToSend = addAppToUrl(url, queryParams: queryParams);
-    var response = await _httpClient.get(
-      urlToSend,
-      headers: buildHeaders(headers),
+    return await httpClient.getWithParams(
+      url,
+      headers: headers,
+      queryParams: queryParams,
     );
-    handleResponse(response);
-    return Response.fromHttpResponse(response);
   }
 
   /// Sends an authenticated PUT request to the specified URL.
@@ -292,19 +207,12 @@ class AuthManager {
   /// Returns a [Response] object containing the server's response.
   ///
   /// Throws [Exception] if the user is not logged in or if the URL validation fails.
-  Future<Response> put(
+  Future<http.Response> put(
     Uri url, {
     Map<String, String>? headers,
     Map<String, Object?>? body,
   }) async {
-    _validate(url);
-    var response = await _httpClient.put(
-      addAppToUrl(url),
-      headers: buildHeaders(headers),
-      body: jsonEncode(body),
-    );
-    handleResponse(response);
-    return Response.fromHttpResponse(response);
+    return httpClient.put(url, headers: headers, body: body);
   }
 
   /// Sends an authenticated DELETE request to the specified URL.
@@ -316,53 +224,12 @@ class AuthManager {
   /// Returns a [Response] object containing the server's response.
   ///
   /// Throws [Exception] if the user is not logged in or if the URL validation fails.
-  Future<Response> delete(
+  Future<http.Response> delete(
     Uri url, {
     Map<String, String>? headers,
     Map<String, Object?>? body,
   }) async {
-    _validate(url);
-    var response = await _httpClient.delete(
-      addAppToUrl(url),
-      headers: buildHeaders(headers),
-      body: jsonEncode(body),
-    );
-    handleResponse(response);
-    return Response.fromHttpResponse(response);
-  }
-
-  Uri _validate(Uri uri) {
-    uri = _validateUri(uri);
-    userMustBeLoggedIn();
-    return uri;
-  }
-
-  Uri _validateUri(Uri uri) {
-    if (uri.host != config.appURL) {
-      uri = uri.replace(host: config.appURL);
-    }
-    return uri;
-  }
-
-  bool userMustBeLoggedIn() {
-    if (user == null || user!.accessToken == null) {
-      throw Exception('User not logged in');
-    }
-    return true;
-  }
-
-  Uri addAppToUrl(Uri url, {Map<String, dynamic>? queryParams}) {
-    queryParams ??= <String, dynamic>{};
-    queryParams[config.appIdKey] = user!.appId!.toString();
-    return url.replace(queryParameters: queryParams);
-  }
-
-  Map<String, String> buildHeaders(Map<String, String>? headers) {
-    headers ??= {};
-    headers.addAll(_accessValues);
-    headers['content-type'] = 'application/json';
-    headers['accept'] = 'application/json';
-    return headers;
+    return httpClient.delete(url, headers: headers, body: body);
   }
 
   /// Replaces the singleton instance with a new AuthManager for testing purposes.
@@ -374,9 +241,4 @@ class AuthManager {
   void replaceForTesting(AuthManager authManager) {
     _singleton = authManager;
   }
-
-  static const Map<String, String> defaultHeaders = {
-    'content-type': 'application/json',
-    'accept': 'application/json',
-  };
 }

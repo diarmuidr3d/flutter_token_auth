@@ -1,12 +1,23 @@
+import 'package:flutter_token_auth/src/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_token_auth/flutter_token_auth.dart';
+import 'package:http/testing.dart';
 
 import 'method_counters.dart';
 
 class FakeAuthManager implements AuthManager {
   static final FakeAuthManager _authManager = FakeAuthManager._new();
+
   @override
-  late AuthConfig config;
+  AuthConfig config = const AuthConfig(appURL: 'https://example.test');
+
+  @override
+  AuthClient httpClient = AuthClient(
+    config: const AuthConfig(appURL: 'https://example.test'),
+    httpClient: MockClient((request) async {
+      return http.Response('{}', 200);
+    }),
+  );
 
   FakeAuthManager._new();
 
@@ -46,11 +57,6 @@ class FakeAuthManager implements AuthManager {
   }
 
   @override
-  Uri addAppToUrl(Uri url, {Map<String, dynamic>? queryParams}) {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<bool> checkLoggedIn() async {
     if (allowLogin) {
       if (user == null) return false;
@@ -63,16 +69,11 @@ class FakeAuthManager implements AuthManager {
   get currentUser => user;
 
   @override
-  Future<Response> get(
+  Future<http.Response> get(
     Uri url, {
     Map<String, String>? headers,
     Map<String, dynamic>? queryParams,
   }) {
-    throw UnimplementedError();
-  }
-
-  @override
-  handleResponse(http.Response response) {
     throw UnimplementedError();
   }
 
@@ -93,7 +94,7 @@ class FakeAuthManager implements AuthManager {
   }
 
   @override
-  Future<Response> post(
+  Future<http.Response> post(
     Uri url, {
     Map<String, String>? headers,
     Map<String, Object?>? body,
@@ -115,12 +116,7 @@ class FakeAuthManager implements AuthManager {
   }
 
   @override
-  Map<String, String> buildHeaders(headers) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Response> put(
+  Future<http.Response> put(
     Uri url, {
     Map<String, String>? headers,
     Map<String, Object?>? body,
@@ -129,15 +125,7 @@ class FakeAuthManager implements AuthManager {
   }
 
   @override
-  bool userMustBeLoggedIn() {
-    if (allowLogin) {
-      return user != null && user!.isSignedIn;
-    }
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Response> delete(
+  Future<http.Response> delete(
     Uri url, {
     Map<String, String>? headers,
     Map<String, Object?>? body,
@@ -166,11 +154,6 @@ class FakeAuthManager implements AuthManager {
       user = MockUser.create(email: email, name: name);
       return user;
     }
-    throw UnimplementedError();
-  }
-
-  @override
-  User? handleUserResponse(http.Response response) {
     throw UnimplementedError();
   }
 
