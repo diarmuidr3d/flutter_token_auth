@@ -1,6 +1,6 @@
 name: flutter_token_auth
 description: A package for handling token-based authentication in Flutter.
-version: 0.3.0
+version: 0.3.1
 repository: https://github.com/diarmuidr3d/flutter_token_auth
 
 environment:

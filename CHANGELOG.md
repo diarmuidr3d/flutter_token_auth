@@ -1,3 +1,6 @@
+## 0.3.1
+- Fix dependency issue blocking publish
+
 ## 0.3.0
 - Begin migration towards client approach, there is now `AuthClient` which can be supplied as a http client
 
