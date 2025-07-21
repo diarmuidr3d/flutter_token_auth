@@ -1,12 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_token_auth/flutter_token_auth.dart' hide Response;
+import 'package:flutter_token_auth/flutter_token_auth.dart';
+import 'package:flutter_token_auth/src/client.dart';
 import 'package:http/http.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
-import 'package:flutter_token_auth/src/auth_config.dart';
-import 'package:flutter_token_auth/src/auth_manager.dart';
 
 void main() {
   group('AuthManager Tests', () {
@@ -45,17 +44,6 @@ void main() {
         },
       );
 
-      test('should have correct default headers', () {
-        expect(
-          AuthManager.defaultHeaders['content-type'],
-          equals('application/json'),
-        );
-        expect(
-          AuthManager.defaultHeaders['accept'],
-          equals('application/json'),
-        );
-      });
-
       group('login', () {
         late MockClient httpClient;
         setUp(() {
@@ -78,7 +66,8 @@ void main() {
               },
             );
           });
-          AuthManager(httpClient: httpClient, config: config);
+          final authClient = AuthClient(config: config, httpClient: httpClient);
+          AuthManager(httpClient: authClient, config: config);
         });
 
         test('should login a user', () async {
@@ -137,7 +126,12 @@ void main() {
                 },
               );
             });
-            AuthManager(httpClient: httpClient, config: config);
+            final authManager = AuthManager(config: config);
+            final authClient = AuthClient(
+              config: config,
+              httpClient: httpClient,
+            );
+            authManager.httpClient = authClient;
           });
 
           test('should login a user', () async {
@@ -166,46 +160,11 @@ void main() {
         });
       });
 
-      group('addAppToUrl', () {
-        setUp(() {
-          AuthManager(config: config).user = MockUser(appId: 123);
-        });
-
-        test('should add app id to url', () async {
-          final url = Uri.parse('https://test.example.com/auth/sign_in');
-          final newUrl = AuthManager().addAppToUrl(url);
-          expect(newUrl.queryParameters['app_id'], equals('123'));
-        });
-
-        group('with custom app id key', () {
-          setUp(() {
-            config = AuthConfig(
-              appURL: 'test.example.com',
-              appIdKey: 'farm_id',
-            );
-            AuthManager(config: config).user = MockUser(appId: 123);
-          });
-
-          test('should add app id to url', () async {
-            final url = Uri.parse('https://test.example.com/auth/sign_in');
-            final newUrl = AuthManager().addAppToUrl(url);
-            expect(newUrl.queryParameters['farm_id'], equals('123'));
-          });
-        });
-      });
-
       group('Error Handling and Authentication State', () {
         test('should return false for validateToken when no user', () async {
           final result = await AuthManager().validateToken();
           expect(result, isFalse);
         });
-
-        test(
-          'should validate that user must be logged in for authenticated operations',
-          () {
-            expect(() => AuthManager().userMustBeLoggedIn(), throwsException);
-          },
-        );
       });
     });
   });

@@ -63,12 +63,6 @@ void main() {
       expect(isLoggedIn, isTrue);
     });
 
-    test('should handle userMustBeLoggedIn with FakeAuthManager', () {
-      final fakeAuth = FakeAuthManager(withLoggedInUser: true);
-
-      expect(fakeAuth.userMustBeLoggedIn(), isTrue);
-    });
-
     test('should handle failed login attempts', () async {
       expect(
         () => fakeAuth.login('test@example.com', 'wrongpassword'),

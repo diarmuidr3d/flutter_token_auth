@@ -1,3 +1,6 @@
+## 0.3.0
+- Begin migration towards client approach, there is now `AuthClient` which can be supplied as a http client
+
 ## 0.2.4
 - Auth Manager no longer has an awkward config validation in the constructor
 
