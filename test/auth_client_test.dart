@@ -15,7 +15,7 @@ void main() {
     late AuthClient client;
     setUp(() {
       user = MockUser.create();
-      client = AuthClient(config: config);
+      client = AuthClient(config: config, httpClient: httpClient);
     });
     group('headers', () {
       test('should have correct default headers', () {

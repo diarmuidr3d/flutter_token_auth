@@ -35,6 +35,7 @@ class FakeAuthManager implements AuthManager {
     return _authManager;
   }
 
+  @override
   User? user;
 
   bool allowLogin = false;
