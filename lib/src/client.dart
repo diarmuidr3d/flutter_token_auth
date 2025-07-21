@@ -187,7 +187,7 @@ class AuthClient extends http.BaseClient {
   void handleResponse(http.Response response) {
     var headers = response.headers;
     String? accessToken = headers['access-token'];
-    if (accessToken == "") return;
+    if (accessToken?.isEmpty ?? true) return;
     authManager.user!.accessToken = accessToken;
     authManager.user!.client = headers['client'];
     authManager.user!.uid = headers['uid'];
@@ -196,7 +196,9 @@ class AuthClient extends http.BaseClient {
 
   User? handleUserResponse(http.Response response) {
     if (response.statusCode != 200) {
-      throw Exception('Failed to login');
+      throw Exception(
+        'Failed to login. Status code: ${response.statusCode}. Body: ${response.body}',
+      );
     }
     var respHeaders = response.headers;
     var body = json.decode(response.body);
@@ -225,13 +227,16 @@ class AuthClient extends http.BaseClient {
 
   bool userMustBeLoggedIn() {
     if (user == null || user!.accessToken == null) {
-      throw Exception('User not logged in');
+      throw Exception('User must be logged in to make this request');
     }
     return true;
   }
 
   Uri addAppToUrl(Uri url, {Map<String, dynamic>? queryParams}) {
     final Map<String, String> paramsToAdd = {};
+    if (url.queryParameters.isNotEmpty) {
+      paramsToAdd.addAll(url.queryParameters);
+    }
     if (queryParams != null) {
       queryParams.forEach((key, value) {
         paramsToAdd[key] = value.toString();
