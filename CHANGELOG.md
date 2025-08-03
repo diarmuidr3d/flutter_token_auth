@@ -1,3 +1,6 @@
+## 0.3.2
+- Fix missing client export
+
 ## 0.3.1
 - Fix dependency issue blocking publish
 
