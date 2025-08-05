@@ -1,3 +1,9 @@
+## 0.3.4
+- fix changelog
+
+## 0.3.3
+- More consistent encoding of requests, allows for null values in body
+
 ## 0.3.2
 - Fix missing client export
 
