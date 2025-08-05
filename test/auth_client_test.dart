@@ -1,13 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_token_auth/flutter_token_auth.dart';
-import 'package:flutter_token_auth/src/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
   final config = AuthConfig(appURL: 'https://example.test');
   final httpClient = MockClient((request) async {
-    return http.Response('{}', 200);
+    return http.Response(request.body, 200);
   });
   late User user;
 
@@ -40,6 +41,21 @@ void main() {
             newUrl.queryParameters['app_id'],
             equals(user.appId.toString()),
           );
+        });
+      });
+
+      group('post', () {
+        test('should send correct body', () async {
+          final url = Uri.https('example.test', 'some/path');
+          final body = {'email': 'test@example.com'};
+          final response = await client.post(url, body: body);
+          expect(response.body, equals(jsonEncode(body)));
+        });
+        test('does not fail for null values', () async {
+          final url = Uri.https('example.test', 'some/path');
+          final body = {'email': null};
+          final response = await client.post(url, body: body);
+          expect(response.body, equals(jsonEncode(body)));
         });
       });
     });

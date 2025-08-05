@@ -161,7 +161,7 @@ class AuthClient extends http.BaseClient {
       } else if (body is List) {
         request.bodyBytes = body.cast<int>();
       } else if (body is Map) {
-        request.bodyFields = body.cast<String, String>();
+        request.body = jsonEncode(body);
       } else {
         throw ArgumentError('Invalid request body "$body".');
       }
@@ -216,7 +216,7 @@ class AuthClient extends http.BaseClient {
   }
 
   Uri _validate(Uri uri, {bool skipUserValidation = false}) {
-    if (uri.host != config.appURL) {
+    if (uri.host != config.appURL && uri.origin != config.appURL) {
       uri = uri.replace(host: config.appURL);
     }
     if (!skipUserValidation) userMustBeLoggedIn();
