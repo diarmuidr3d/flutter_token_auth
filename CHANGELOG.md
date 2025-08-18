@@ -1,3 +1,9 @@
+## 0.3.6
+- Fix changelog
+
+## 0.3.5
+- Fix response token recording for unstreamed requests
+
 ## 0.3.4
 - fix changelog
 
