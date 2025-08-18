@@ -81,7 +81,9 @@ class AuthClient extends http.BaseClient {
     bool skipUserValidation = false,
   }) async {
     if (!skipUserValidation) request.headers.addAll(authHeaders());
-    return _httpClient.send(request);
+    final response = _httpClient.send(request);
+    response.then(handleResponse);
+    return response;
   }
 
   @override
@@ -184,7 +186,7 @@ class AuthClient extends http.BaseClient {
     return headers;
   }
 
-  void handleResponse(http.Response response) {
+  void handleResponse(http.BaseResponse response) {
     var headers = response.headers;
     String? accessToken = headers['access-token'];
     if (accessToken?.isEmpty ?? true) return;
