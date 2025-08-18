@@ -190,9 +190,11 @@ class AuthClient extends http.BaseClient {
     var headers = response.headers;
     String? accessToken = headers['access-token'];
     if (accessToken?.isEmpty ?? true) return;
-    authManager.user!.accessToken = accessToken;
-    authManager.user!.client = headers['client'];
-    authManager.user!.uid = headers['uid'];
+    if (user != null) {
+      authManager.user!.accessToken = accessToken;
+      authManager.user!.client = headers['client'];
+      authManager.user!.uid = headers['uid'];
+    }
     authManager.writeKeysToStore();
   }
 

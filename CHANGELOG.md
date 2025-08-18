@@ -1,3 +1,6 @@
+## 0.3.7
+- Don't fail on responses if authmanager user returns null
+
 ## 0.3.6
 - Fix changelog
 

@@ -1,4 +1,3 @@
-import 'package:flutter_token_auth/src/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_token_auth/flutter_token_auth.dart';
 import 'package:http/testing.dart';
@@ -10,6 +9,8 @@ class FakeAuthManager implements AuthManager {
 
   @override
   AuthConfig config = const AuthConfig(appURL: 'https://example.test');
+
+  Map<String, dynamic> _storage = {};
 
   @override
   AuthClient httpClient = AuthClient(
@@ -79,8 +80,14 @@ class FakeAuthManager implements AuthManager {
   }
 
   @override
-  Future<User?> loadFromStorage() {
-    throw UnimplementedError();
+  Future<User?> loadFromStorage() async {
+    return User(
+      accessToken: _storage['access-token'],
+      client: _storage['client'],
+      uid: _storage['uid'],
+      email: _storage['email'],
+      appId: _storage['app_id'],
+    );
   }
 
   @override
@@ -112,8 +119,14 @@ class FakeAuthManager implements AuthManager {
   }
 
   @override
-  writeKeysToStore() {
-    throw UnimplementedError();
+  Future<void> writeKeysToStore() async {
+    _storage = {
+      'access-token': user!.accessToken,
+      'client': user!.client,
+      'uid': user!.uid,
+      'email': user!.email,
+      'app_id': user!.appId,
+    };
   }
 
   @override
