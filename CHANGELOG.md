@@ -1,3 +1,6 @@
+## 0.3.8
+- Fake Auth Manager default url should not include protocol.
+
 ## 0.3.7
 - Don't fail on responses if authmanager user returns null
 

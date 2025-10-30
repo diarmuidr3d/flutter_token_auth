@@ -8,13 +8,13 @@ class FakeAuthManager implements AuthManager {
   static final FakeAuthManager _authManager = FakeAuthManager._new();
 
   @override
-  AuthConfig config = const AuthConfig(appURL: 'https://example.test');
+  AuthConfig config = const AuthConfig(appURL: 'example.test');
 
   Map<String, dynamic> _storage = {};
 
   @override
   AuthClient httpClient = AuthClient(
-    config: const AuthConfig(appURL: 'https://example.test'),
+    config: const AuthConfig(appURL: 'example.test'),
     httpClient: MockClient((request) async {
       return http.Response('{}', 200);
     }),
@@ -23,7 +23,7 @@ class FakeAuthManager implements AuthManager {
   FakeAuthManager._new();
 
   factory FakeAuthManager({
-    AuthConfig? config = const AuthConfig(appURL: 'https://example.test'),
+    AuthConfig? config = const AuthConfig(appURL: 'example.test'),
     bool clear = true,
     bool withLoggedInUser = false,
   }) {
