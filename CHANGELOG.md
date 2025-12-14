@@ -1,3 +1,6 @@
+## 0.3.9
+- Auth client no longer needs to be authenticated to create an account.
+
 ## 0.3.8
 - Fake Auth Manager default url should not include protocol.
 

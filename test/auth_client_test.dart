@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
-  final config = AuthConfig(appURL: 'https://example.test');
+  final config = AuthConfig(appURL: 'example.test');
   final httpClient = MockClient((request) async {
     return http.Response(
       request.body,
@@ -82,6 +82,127 @@ void main() {
           expect(client.authManager.user!.client, equals('456client'));
           expect(client.authManager.user!.uid, equals('789uid'));
         });
+      });
+    });
+
+    group('createAccount', () {
+      test('should send correct body and handle response', () async {
+        final responseBody = jsonEncode({
+          'data': {
+            'id': 1,
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'app_id': 123,
+          },
+        });
+        final mockClient = MockClient((request) async {
+          expect(request.method, equals('POST'));
+          expect(
+            request.url.toString(),
+            equals(config.createAccountUrl.toString()),
+          );
+          expect(
+            request.body,
+            equals(
+              jsonEncode({
+                'email': 'test@example.com',
+                'password': 'password123',
+                'password_confirmation': 'password123',
+                'name': 'Test User',
+              }),
+            ),
+          );
+          return http.Response(
+            responseBody,
+            200,
+            headers: {
+              'access-token': '123access-token',
+              'client': '456client',
+              'uid': '789uid',
+            },
+          );
+        });
+        final client = AuthClient(config: config, httpClient: mockClient);
+        final user = await client.createAccount(
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'Test User',
+        );
+        expect(user, isNotNull);
+        expect(user!.email, equals('test@example.com'));
+        expect(user.name, equals('Test User'));
+        expect(user.accessToken, equals('123access-token'));
+        expect(user.client, equals('456client'));
+        expect(user.uid, equals('789uid'));
+      });
+
+      test('should throw exception for non-200 status code', () async {
+        final mockClient = MockClient((request) async {
+          return http.Response('Error', 400);
+        });
+        final client = AuthClient(config: config, httpClient: mockClient);
+        expect(
+          () async => await client.createAccount(
+            email: 'test@example.com',
+            password: 'password123',
+            name: 'Test User',
+          ),
+          throwsException,
+        );
+      });
+    });
+
+    group('login', () {
+      test('should send correct body and handle response', () async {
+        final responseBody = jsonEncode({
+          'data': {
+            'id': 1,
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'app_id': 123,
+          },
+        });
+        final mockClient = MockClient((request) async {
+          expect(request.method, equals('POST'));
+          expect(request.url.toString(), equals(config.signInUrl.toString()));
+          expect(
+            request.body,
+            equals(
+              jsonEncode({
+                'email': 'test@example.com',
+                'password': 'password123',
+              }),
+            ),
+          );
+          return http.Response(
+            responseBody,
+            200,
+            headers: {
+              'access-token': '123access-token',
+              'client': '456client',
+              'uid': '789uid',
+            },
+          );
+        });
+        final client = AuthClient(config: config, httpClient: mockClient);
+        final user = await client.login('test@example.com', 'password123');
+        expect(user, isNotNull);
+        expect(user!.email, equals('test@example.com'));
+        expect(user.name, equals('Test User'));
+        expect(user.accessToken, equals('123access-token'));
+        expect(user.client, equals('456client'));
+        expect(user.uid, equals('789uid'));
+      });
+
+      test('should throw exception for non-200 status code', () async {
+        final mockClient = MockClient((request) async {
+          return http.Response('Error', 400);
+        });
+        final client = AuthClient(config: config, httpClient: mockClient);
+        expect(
+          () async => await client.login('test@example.com', 'password123'),
+          throwsException,
+        );
       });
     });
   });

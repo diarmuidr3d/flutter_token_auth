@@ -51,14 +51,18 @@ class AuthClient extends http.BaseClient {
     required String password,
     required String name,
   }) async {
-    var response = await post(
+    var response = await _sendUnstreamed(
+      'POST',
       config.createAccountUrl,
-      body: jsonEncode({
+      defaultHeaders,
+      jsonEncode({
         'email': email,
         'password': password,
         'password_confirmation': password,
         'name': name,
       }),
+      null,
+      skipUserValidation: true,
     );
     return handleUserResponse(response);
   }
@@ -82,7 +86,7 @@ class AuthClient extends http.BaseClient {
   }) async {
     if (!skipUserValidation) request.headers.addAll(authHeaders());
     final response = _httpClient.send(request);
-    response.then(handleResponse);
+    if (!skipUserValidation) response.then(handleResponse);
     return response;
   }
 
